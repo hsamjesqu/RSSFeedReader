@@ -13,7 +13,7 @@
     <label for="feed-url">Feed URL</label>
     <div class="input-row">
         <InputText id="feed-url" @bind-Value="request.Url" placeholder="https://example.com/feed.xml" aria-describedby="url-help url-error" />
-        <button type="submit" disabled="isSubmitting">@(isSubmitting ? "Adding..." : "Add subscription")</button>
+        <button type="submit" disabled="@isSubmitting">@(isSubmitting ? "Adding..." : "Add subscription")</button>
     </div>
     <small id="url-help">Use an HTTP or HTTPS RSS or Atom feed URL.</small>
     @if (!string.IsNullOrWhiteSpace(errorMessage))
