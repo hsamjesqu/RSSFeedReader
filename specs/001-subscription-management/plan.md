@@ -10,7 +10,7 @@ Build the MVP RSS feed reader as a minimal single-user web application that allo
 
 ## Technical Context
 
-**Language/Version**: C# on .NET 8 (ASP.NET Core + Blazor WebAssembly)
+**Language/Version**: C# on .NET 9 (ASP.NET Core + Blazor WebAssembly)
 
 **Primary Dependencies**: ASP.NET Core Web API, Blazor WebAssembly, minimal in-memory state model, .NET built-in HTTP client support
 

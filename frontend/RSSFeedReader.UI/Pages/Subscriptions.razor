@@ -1,0 +1,92 @@
+@page "/"
+@page "/subscriptions"
+@using RSSFeedReader.UI.Services
+@inject SubscriptionApiClient ApiClient
+
+<PageTitle>Subscriptions</PageTitle>
+
+<h1>Subscriptions</h1>
+<p class="page-intro">Add the RSS or Atom feeds you want to keep track of.</p>
+
+<EditForm Model="request" OnValidSubmit="AddSubscriptionAsync" class="subscription-form">
+    <DataAnnotationsValidator />
+    <label for="feed-url">Feed URL</label>
+    <div class="input-row">
+        <InputText id="feed-url" @bind-Value="request.Url" placeholder="https://example.com/feed.xml" aria-describedby="url-help url-error" />
+        <button type="submit" disabled="isSubmitting">@(isSubmitting ? "Adding..." : "Add subscription")</button>
+    </div>
+    <small id="url-help">Use an HTTP or HTTPS RSS or Atom feed URL.</small>
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <p id="url-error" class="validation-message" role="alert">@errorMessage</p>
+    }
+</EditForm>
+
+<section aria-labelledby="subscription-list-heading" class="subscription-list-section">
+    <h2 id="subscription-list-heading">Your subscriptions</h2>
+    @if (isLoading)
+    {
+        <p role="status">Loading subscriptions...</p>
+    }
+    else if (subscriptions.Count == 0)
+    {
+        <p class="empty-state">No subscriptions yet.</p>
+    }
+    else
+    {
+        <ul class="subscription-list">
+            @foreach (var subscription in subscriptions)
+            {
+                <li @key="subscription.Id">
+                    <span>@subscription.Url</span>
+                    <time datetime="@subscription.CreatedAt.ToString("O")">Added @subscription.CreatedAt.ToLocalTime().ToString("g")</time>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    private readonly CreateSubscriptionRequest request = new();
+    private readonly List<SubscriptionResponse> subscriptions = [];
+    private bool isLoading = true;
+    private bool isSubmitting;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            subscriptions.AddRange(await ApiClient.GetSubscriptionsAsync());
+        }
+        catch (Exception exception) when (exception is HttpRequestException or InvalidOperationException)
+        {
+            errorMessage = "Subscriptions could not be loaded. Check that the API is running and try again.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task AddSubscriptionAsync()
+    {
+        errorMessage = null;
+        isSubmitting = true;
+
+        try
+        {
+            var subscription = await ApiClient.CreateSubscriptionAsync(request.Url ?? string.Empty);
+            subscriptions.Add(subscription);
+            request.Url = string.Empty;
+        }
+        catch (Exception exception) when (exception is HttpRequestException or InvalidOperationException)
+        {
+            errorMessage = exception.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}
